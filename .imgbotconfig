@@ -1,0 +1,14 @@
+{
+    "schedule": "daily", // daily|weekly|monthly
+    "aggressiveCompression": "false", // true|false
+    "compressWiki": "true", // true|false
+    "minKBReduced": 10 // set reduction threshold (default to 10),
+    "prTitle": "Optimize images", // set pull request title
+    // set the pull request body, supports any valid github markdown
+    // {optimization_ratio} display a message containing the optimization ratio
+    // {optimization_details} display the table containing the optimization details
+
+    "prBody": "This pull request optimizes the images in the repository.\n\n**Optimization Ratio:** {optimization_ratio}\n\n**Optimization Details:**\n{optimization_details}"
+
+    
+}
