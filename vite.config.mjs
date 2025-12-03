@@ -6,6 +6,7 @@ import Layouts from "vite-plugin-vue-layouts";
 import Vue from "@vitejs/plugin-vue";
 import VueRouter from "unplugin-vue-router/vite";
 import Vuetify, { transformAssetUrls } from "vite-plugin-vuetify";
+import vueDevTools from 'vite-plugin-vue-devtools';
 
 // Utilities
 import { defineConfig } from "vite";
@@ -16,6 +17,7 @@ import path from "path";
 export default defineConfig({
   base: "./", // Relative base URL for Electron
   plugins: [
+    vueDevTools(),
     Vue({
       template: { transformAssetUrls },
     }),

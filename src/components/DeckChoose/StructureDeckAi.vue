@@ -12,16 +12,25 @@
           </v-card-actions>
         </v-card>
       </v-dialog>
-      <v-container>
-        <v-row class="d-flex">
-          <v-col cols="3" >
-            
+      <v-container fluid class="mobile-container">
+        <v-row class="d-flex mobile-layout">
+          <!-- Mobile Toggle Buttons -->
+          <div class="mobile-tabs d-md-none">
+            <v-btn-toggle v-model="activeTab" mandatory>
+              <v-btn value="decks" size="small">Decks</v-btn>
+              <v-btn value="cards" size="small">Cards</v-btn>
+              <v-btn value="deck" size="small">My Deck ({{ selectedCount }})</v-btn>
+            </v-btn-toggle>
+          </div>
+
+          <!-- Desktop/Tablet Left Panel - Mobile Deck Selection -->
+          <v-col cols="12" md="3" class="left-panel" :class="{ 'd-none d-md-block': activeTab !== 'decks' }">
             <v-card class="sc-container2" elevation="10" :class="{ 'glow-border': showTooltip }">
               <p v-if="!infoDialog && showGlowBorder" class="start-here-text animated">Start here</p>
               <v-container class="cards-display">
-                <v-row>
-                  <v-col v-for="deck in paginatedDecksWithRandom" :key="deck.id" cols="6">
-                    <v-card class="pa-2 cards" @click="deck.isRandom ? fetchRandomCards() : selectDeck(deck)" :data-deck-id="deck.id"
+                <v-row class="justify-center">
+                  <v-col v-for="deck in paginatedDecksWithRandom" :key="deck.id" cols="6" sm="4" md="6" class="d-flex justify-center">
+                    <v-card class="pa-2 cards deck-card centered-card" @click="deck.isRandom ? fetchRandomCards() : selectDeck(deck)" :data-deck-id="deck.id"
                       :style="cardDisplay(deck.img)" variant="text">
                       <v-tooltip activator="parent" location="end">
                         <div>
@@ -34,127 +43,136 @@
                 </v-row>
               </v-container>
               <!-- UI guide for card limits -->
-              <div class="ui-guide text-center" style="line-height: 1.2;">
-                <p><strong>Deck Confirmation Guide:</strong></p>
-                <p>Ensure your deck contains:</p>
-                <p>1 Special Card</p>
-                <p>3 Rare Cards</p>
-                <p>3 Common Cards</p>
+              <div class="ui-guide text-center mobile-guide">
+                <p><strong>Deck Guide:</strong></p>
+                <p>1 Special • 3 Rare • 3 Common</p>
                 <p>Total: 7 Cards</p>
               </div>
-              <!-- Progress Bars -->
-              <v-btn color="secondary" @click="goBack" style="position: fixed; left: 20px; bottom: 20px; z-index: 20">
-                Back
-              </v-btn>
-              <v-btn v-if="deck.length === 7" color="primary" @click="confirmDeck"
-                :disabled="loading"
-                style="position: fixed; right: 20px; bottom: 20px; z-index: 20">
-                <span v-if="loading">Loading...</span>
-                <span v-else>Confirm Deck</span>
-              </v-btn>
             </v-card>
           </v-col>
-  
-          <v-col cols="6">
-            <v-row>
-              <v-col v-for="card in paginatedCards" :key="card.id" cols="4">
-                <div class="pa-2 cards" @click="selectCard(card)" :style="cardDisplay(card.img)">
-                  <v-tooltip activator="parent" location="bottom">
-                    <div>
-                      <strong>{{ card.name }}</strong>
-                      <p>{{ card.rarity }}</p>
-                    </div>
-                  </v-tooltip>
-                </div>
-              </v-col>
-            </v-row>
-  
-            <v-btn v-if="currentPage > 1" icon class="arrow-button left-arrow" @click="prevPage">
-              <v-icon>mdi-menu-left</v-icon>
-            </v-btn>
-  
-            <v-btn v-if="currentPage < totalPagesCards" icon class="arrow-button right-arrow" @click="nextPage">
-              <v-icon>mdi-menu-right</v-icon>
-            </v-btn>
+
+          <!-- Desktop/Tablet Center Panel - Mobile Available Cards -->
+          <v-col cols="12" md="6" class="center-panel" :class="{ 'd-none d-md-block': activeTab !== 'cards' }">
+            <div class="cards-container">
+              <v-row class="cards-grid justify-center">
+                <v-col v-for="card in paginatedCards" :key="card.id" cols="4" sm="3" md="4" class="d-flex justify-center">
+                  <div class="pa-1 cards centered-card" @click="selectCard(card)" :style="cardDisplay(card.img)">
+                    <v-tooltip activator="parent" location="bottom">
+                      <div>
+                        <strong>{{ card.name }}</strong>
+                        <p>{{ card.rarity }}</p>
+                      </div>
+                    </v-tooltip>
+                  </div>
+                </v-col>
+              </v-row>
+
+              <v-btn v-if="currentPage > 1" icon class="arrow-button left-arrow" @click="prevPage">
+                <v-icon>mdi-menu-left</v-icon>
+              </v-btn>
+
+              <v-btn v-if="currentPage < totalPagesCards" icon class="arrow-button right-arrow" @click="nextPage">
+                <v-icon>mdi-menu-right</v-icon>
+              </v-btn>
+            </div>
           </v-col>
-  
-          <v-col cols="3">
-            
+
+          <!-- Desktop/Tablet Right Panel - Mobile Selected Deck -->
+          <v-col cols="12" md="3" class="right-panel" :class="{ 'd-none d-md-block': activeTab !== 'deck' }">
             <v-card class="sc-container" elevation="10">
-              <div class="progress-bars">
-                <div>
-                  <p>Special Cards: {{ specialCards }}/1</p>
+              <div class="progress-bars mobile-progress">
+                <div class="progress-item">
+                  <p class="progress-text">Special: {{ specialCards }}/1</p>
                   <v-progress-linear
                     :value="(specialCards / 1) * 100"
                     color="purple"
                     class="progress-bar"
+                    height="8"
                   ></v-progress-linear>
                 </div>
-                <div>
-                  <p>Rare Cards: {{ rareCards }}/3</p>
+                <div class="progress-item">
+                  <p class="progress-text">Rare: {{ rareCards }}/3</p>
                   <v-progress-linear
                     :value="(rareCards / 3) * 100"
                     color="blue"
                     class="progress-bar"
+                    height="8"
                   ></v-progress-linear>
                 </div>
-                <div>
-                  <p>Common Cards: {{ commonCards }}/3</p>
+                <div class="progress-item">
+                  <p class="progress-text">Common: {{ commonCards }}/3</p>
                   <v-progress-linear
                     :value="(commonCards / 3) * 100"
                     color="green"
                     class="progress-bar"
+                    height="8"
                   ></v-progress-linear>
                 </div>
               </div>
-              <v-card-title class="text-center m-0 p-0">Cards on Deck</v-card-title>
+              <v-card-title class="text-center m-0 p-0 deck-title">Cards on Deck</v-card-title>
               <div class="text-center text-caption pb-3 text-white-50">
                 {{ selectedCount }}/7 selected cards
               </div>
-  
-              <v-card v-for="(card, index) in deck" :key="index" class="sc-item pa-3">
-                <v-img :src="card.img" :alt="card.name" cover>
-                  <div class="color-overlay"></div>
-                </v-img>
-  
-                <div class="sc-icon">
-                  <v-avatar class="bg-white" variant="elevated" image="@/assets/icon/sticks.png" size="60"></v-avatar>
-                </div>
-  
-                <div class="sc-info">
-                  <div class="font-weight-bold text-uppercase c-name">
-                    {{ card.name }}
+
+              <div class="deck-cards-container">
+                <v-card v-for="(card, index) in deck" :key="index" class="sc-item pa-3">
+                  <v-img :src="card.img" :alt="card.name" cover>
+                    <div class="color-overlay"></div>
+                  </v-img>
+
+                  <div class="sc-icon">
+                    <v-avatar class="bg-white" variant="elevated" image="@/assets/icon/sticks.png" :size="$vuetify.display.mobile ? 40 : 60"></v-avatar>
                   </div>
-                  <div class="text-capitalize font-italic c-rarity">
-                    {{ card.rarity }}
+
+                  <div class="sc-info">
+                    <div class="font-weight-bold text-uppercase c-name">
+                      {{ card.name }}
+                    </div>
+                    <div class="text-capitalize font-italic c-rarity">
+                      {{ card.rarity }}
+                    </div>
                   </div>
-                </div>
-  
-                <div class="btn-container">
-                  <v-btn icon @click="openDialog(card)">
-                    <v-icon>mdi-eye</v-icon>
-                  </v-btn>
-                  <v-btn icon small @click="removeCard(index)">
-                    <v-icon>mdi-delete</v-icon>
-                  </v-btn>
-                </div>
-              </v-card>
-  
-              <v-btn color="secondary" @click="goBack" style="position: fixed; left: 20px; bottom: 20px; z-index: 20">
-                Back
-              </v-btn>
-  
-              <v-btn v-if="deck.length === 7" color="primary" @click="confirmDeck"
-                :disabled="loading"
-                style="position: fixed; right: 20px; bottom: 20px; z-index: 20">
-                <span v-if="loading">Loading...</span>
-                <span v-else>Confirm Deck</span>
-              </v-btn>
+
+                  <div class="btn-container">
+                    <v-btn icon @click="openDialog(card)" size="small">
+                      <v-icon>mdi-eye</v-icon>
+                    </v-btn>
+                    <v-btn icon @click="removeCard(index)" size="small">
+                      <v-icon>mdi-delete</v-icon>
+                    </v-btn>
+                  </div>
+                </v-card>
+              </div>
             </v-card>
           </v-col>
         </v-row>
+
+        <!-- Mobile Fixed Bottom Buttons -->
+        <div class="mobile-bottom-buttons d-md-none">
+          <v-btn color="secondary" @click="goBack" size="small">
+            Back
+          </v-btn>
+          <v-btn v-if="deck.length === 7" color="primary" @click="confirmDeck"
+            :disabled="loading" size="small">
+            <span v-if="loading">Loading...</span>
+            <span v-else>Confirm Deck</span>
+          </v-btn>
+        </div>
+
+        <!-- Desktop Fixed Bottom Buttons -->
+        <div class="desktop-bottom-buttons d-none d-md-block">
+          <v-btn color="secondary" @click="goBack" style="position: fixed; left: 20px; bottom: 20px; z-index: 20">
+            Back
+          </v-btn>
+          <v-btn v-if="deck.length === 7" color="primary" @click="confirmDeck"
+            :disabled="loading"
+            style="position: fixed; right: 20px; bottom: 20px; z-index: 20">
+            <span v-if="loading">Loading...</span>
+            <span v-else">Confirm Deck</span>
+          </v-btn>
+        </div>
       </v-container>
-  
+
       <v-dialog v-model="dialog" max-width="500px">
         <v-card>
           <v-img :src="selectedCard.img" :alt="selectedCard.name" cover></v-img>
@@ -167,7 +185,7 @@
       </v-dialog>
     </div>
   </template>
-  
+
   <script setup>
   import { ref, computed, onMounted } from "vue";
   import { supabase } from "@/lib/supabase";
@@ -176,7 +194,8 @@
   import { useAudioStore } from "@/stores/audioStore";
   import { useAudioAdventure } from "@/stores/adventureAudio";
   import { useDeckValidation } from "@/composables/useDeckValidation";
-  
+  import { useDisplay } from "vuetify";
+
   const cards = ref([]);
   const deck = ref([]);
   const decks = ref([]);
@@ -185,24 +204,28 @@
   const loading = ref(false);
   const audioStore = useAudioStore();
   const audioAdventure = useAudioAdventure();
+  const { mobile } = useDisplay();
   const currentPage = ref(1);
   const cardsPerPage = 9;
-  
+
+  // Mobile responsive state
+  const activeTab = ref('decks');
+
   const dialog = ref(false);
   const selectedCard = ref({});
-  
+
   const { isDeckValid, validateDeck, validationMessage } = useDeckValidation(deck);
-  
+
   const specialCards = computed(() => deck.value.filter(card => card.rarity === 'special').length);
   const rareCards = computed(() => deck.value.filter(card => card.rarity === 'rare').length);
   const commonCards = computed(() => deck.value.filter(card => card.rarity === 'common').length);
-  
+
   const infoDialog = ref(true);
-  
+
   const showTooltip = ref(false);
-  
+
   const showGlowBorder = ref(true);
-  
+
   onMounted(async () => {
     deckDisplay();
     setTimeout(() => {
@@ -218,33 +241,33 @@
       console.error("Error fetching structure decks:", err.message);
     }
   }
-  
+
   //javascript
   const selectDeck = async (deck) => {
     audioStore.playCardSound();
-  
+
     try {
       let { data: deckData, error: deckError } = await supabase
         .from("decks")
         .select("*")
         .eq("structure_deck_id", deck.id);
-  
+
       if (deckError) {
         throw deckError;
       }
-  
+
       decks.value = deckData;
       const cardIds = decks.value.map(deck => deck.card_id);
-  
+
       let { data: cardData, error: cardError } = await supabase
         .from("cards")
         .select("*")
         .in("id", cardIds);
-  
+
       if (cardError) {
         throw cardError;
       }
-  
+
       cards.value = cardData;
       currentPage.value = 1;
       deckDisplay();
@@ -253,50 +276,50 @@
       toast.error("Failed to load cards. Please try again.");
     }
   };
-  
-  
+
+
   //postgres functions
   // const selectDeck = async (deck) => {
   //   audioStore.playCardSound();
   //   try {
-     
+
   //     let { data: deckData, error: deckError } = await supabase
   //       .rpc('get_deck_with_cards', { input_deck_id: deck.id });
-  
+
   //     if (deckError) {
   //       throw deckError;
   //     }
-  
-      
+
+
   //     decks.value = deckData;
-  
-      
+
+
   //     const cardIds = deckData.map(item => item.card_id);
-  
-      
+
+
   //     let { data: cardData, error: cardError } = await supabase
   //       .from("cards")
   //       .select("*")
   //       .in("id", cardIds);
-  
+
   //     if (cardError) {
   //       throw cardError;
   //     }
-  
-     
+
+
   //     cards.value = cardData;
   //     currentPage.value = 1;
-      
+
   //     // Call deck display function
   //     deckDisplay();
-  
+
   //   } catch (err) {
   //     console.error("Error fetching data for selected deck:", err.message);
   //     toast.error("Failed to load cards. Please try again.");
   //   }
   // };
-  
-  
+
+
   const selectCard = (card) => {
     audioStore.playCardSound();
     if (deck.value.length < 7 && !deck.value.includes(card)) {
@@ -310,60 +333,60 @@
   const removeCard = (index) => {
     deck.value.splice(index, 1);
   };
-  
+
   const openDialog = (card) => {
     selectedCard.value = card;
     dialog.value = true;
   };
-  
+
   const cardDisplay = (img) => ({
     backgroundImage: `url(${img})`,
     backgroundSize: "cover",
     backgroundPosition: "center",
-    height: "210px",
-    width: "170px",
+    height: mobile.value ? "180px" : "210px",
+    width: mobile.value ? "130px" : "170px",
     borderRadius: "8px",
     position: "relative",
     cursor: "pointer",
   });
-  
+
   const selectedCount = computed(() => deck.value.length);
-  
+
   const totalPages = computed(() => Math.ceil(decks.value.length / cardsPerPage));
-  
+
   const paginatedDecks = computed(() => {
     const start = (currentPage.value - 1) * cardsPerPage;
     const end = start + cardsPerPage;
     return decks.value.slice(start, end);
   });
-  
+
   const paginatedCards = computed(() => {
     const start = (currentPage.value - 1) * cardsPerPage;
     const end = start + cardsPerPage;
     return cards.value.slice(start, end);
   });
-  
+
   const totalPagesCards = computed(() => Math.ceil(cards.value.length / cardsPerPage));
-  
+
   const nextPage = () => {
     if (currentPage.value < totalPagesCards.value) {
       currentPage.value++;
     }
   };
-  
+
   const prevPage = () => {
     if (currentPage.value > 1) {
       currentPage.value--;
     }
   };
-  
+
   const goBack = () => {
     router.push("/select_character");
   };
-  
+
   const startBattle = () => {
     const randomPlayer = Math.random() < 0.5 ? '1' : '2'; // Randomly choose between '1' and '2'
-    
+
     if (randomPlayer === '1') {
         toast(`Player 1 attacks first!`, {
             type: 'success',
@@ -382,10 +405,10 @@
         router.push("/next_phase_ai");
     }
   };
-  
+
   const confirmDeck = async () => {
     validateDeck();
-  
+
     if (!isDeckValid.value) {
       if (validationMessage.value) {
         toast.info(validationMessage.value); // Use info toast for dynamic feedback
@@ -394,7 +417,7 @@
       }
       return;
     }
-  
+
     audioAdventure.playClick();
     const characterId = localStorage.getItem("selectedCharacter");
     const userId = localStorage.getItem("user_id");
@@ -402,7 +425,7 @@
       alert("User is not logged in.");
       return;
     }
-  
+
     loading.value = true;
     try {
     // First, check if the user already has 7 cards in their deck
@@ -410,19 +433,19 @@
       .from("deck_builds")
       .select("id")
       .eq("user_id", characterId);
-  
+
     if (fetchDeckError) {
       console.error("Error fetching existing deck:", fetchDeckError);
       return; // Stop if there's an error fetching the user's deck
     }
-  
+
     // If there are 7 cards, prevent further inserts
     if (existingDeck.length >= 7) {
       console.log("A user can only have up to 7 cards in their deck.");
       toast("You can only have 7 cards in your deck.");
       return; // Abort the insert operation if the limit is reached
     }
-  
+
     // Insert new cards only if the user has fewer than 7
     for (const card of deck.value) {
       // Check if the card already exists in the table for the given user
@@ -431,15 +454,15 @@
         .select("id")
         .eq("character_id", userId)
         .eq("card_id", card.id);
-  
+
       if (fetchError) {
         console.error("Error checking for duplicate:", fetchError);
         continue; // Skip this card and move to the next one
       }
-  
+
       // Insert only if the card does not already exist (check if existingCards has no results)
       if (existingCards.length === 0) {
-      
+
         const { error: insertError } = await supabase.from("deck_builds").insert([
           {
             user_id: userId,
@@ -448,30 +471,30 @@
             temp: 1,
           },
         ]);
-  
+
         if (insertError) {
           console.error("Error inserting card into deck:", insertError);
-        } 
+        }
       }
     }
-  
+
     toast("Deck has been confirmed!");
     startBattle(); // Call startBattle instead of router.push("/deck_player2");
   } finally {
     loading.value = false; // Set loading to false once done
   }
-  
+
   };
-  
+
   const fetchRandomCards = async () => {
     try {
       let { data: cardData, error } = await supabase
         .from("cards")
         .select("*")
         .neq("id", 91); // Exclude card with id=91
-  
+
       if (error) throw error;
-  
+
       // Shuffle the cards and take the first 9
       cards.value = shuffleArray(cardData).slice(0, 9);
       currentPage.value = 1; // Reset to first page
@@ -480,7 +503,7 @@
       toast.error("Failed to load random cards. Please try again.");
     }
   };
-  
+
   // Utility function to shuffle an array
   function shuffleArray(array) {
     for (let i = array.length - 1; i > 0; i--) {
@@ -489,7 +512,7 @@
     }
     return array;
   }
-  
+
   const paginatedDecksWithRandom = computed(() => {
     const randomDeck = {
       id: 'random',
@@ -500,7 +523,7 @@
     };
     return [...paginatedDecks.value, randomDeck];
   });
-  
+
   const closeInfoDialog = () => {
     infoDialog.value = false;
     showTooltip.value = true;
@@ -509,31 +532,120 @@
     }, 3400); // Hide tooltip after 5 seconds
   };
   </script>
-  
-  
-  
-  
-  
-  
+
+
+
+
+
+
   <style scoped>
   .display {
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
+    min-height: 100vh;
     width: 100%;
     background-image: url("@/assets/maps/map1Grad.png");
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
     position: relative;
+    padding: 0;
   }
-  
+
+  /* Mobile-first responsive containers */
+  .mobile-container {
+    padding: 0 !important;
+    margin: 0;
+    min-height: 100vh;
+  }
+
+  .mobile-layout {
+    margin: 0;
+    min-height: 100vh;
+  }
+
+  /* Mobile tab navigation */
+  .mobile-tabs {
+    position: fixed;
+    top: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 100;
+    background: rgba(21, 21, 21, 0.95);
+    border-radius: 12px;
+    padding: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  }
+
+  .mobile-tabs .v-btn-toggle {
+    background: transparent;
+  }
+
+  .mobile-tabs .v-btn {
+    font-size: 14px;
+    font-weight: 600;
+    min-height: 40px;
+    margin: 2px;
+    border-radius: 8px;
+  }
+
+  /* Mobile bottom buttons */
+  .mobile-bottom-buttons {
+    position: fixed;
+    bottom: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 100;
+    display: flex;
+    gap: 15px;
+    background: rgba(21, 21, 21, 0.95);
+    padding: 12px 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  }
+
+  .mobile-bottom-buttons .v-btn {
+    min-height: 44px;
+    min-width: 80px;
+    font-size: 14px;
+    font-weight: 600;
+  }
+
   .cards-display {
     max-height: 90vh;
     overflow-y: auto;
+    padding: 20px 10px;
   }
-  
+
+  .cards-container {
+    position: relative;
+    padding: 20px 10px;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .cards-grid {
+    margin: 0;
+    min-height: calc(100vh - 80px);
+    align-items: center;
+    justify-content: center;
+  }
+
+  .centered-card {
+    margin: 0 auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .deck-cards-container {
+    max-height: 60vh;
+    overflow-y: auto;
+  }
+
   .card-title {
     color: #151515;
     position: absolute;
@@ -543,51 +655,178 @@
     transform: translateX(-50%);
     z-index: 10;
   }
-  
+
   .arrow-button {
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
     z-index: 10;
   }
-  
+
   .left-arrow {
     left: -30px;
   }
-  
+
   .right-arrow {
     right: -30px;
   }
-  
+
+  /* Mobile arrow buttons */
+  @media (max-width: 767px) {
+    .arrow-button {
+      top: auto;
+      bottom: 10px;
+      transform: none;
+      background: rgba(21, 21, 21, 0.8);
+    }
+
+    .left-arrow {
+      left: 10px;
+    }
+
+    .right-arrow {
+      right: 10px;
+    }
+  }
+
   .sc-container {
-    position: absolute;
-    right: 0;
-    top: 0;
     height: 100vh;
     overflow-y: auto;
-    width: 420px;
     padding: 10px;
     background-color: #151515;
   }
-  
+
   .sc-container2 {
-    position: absolute;
-    left: 0;
-    top: 0;
     height: 100vh;
     overflow-y: auto;
-    width: 420px;
     padding: 10px;
     background-color: #151515;
     z-index: 1;
   }
-  
+
+  /* Desktop styles */
+  @media (min-width: 768px) {
+    .sc-container {
+      position: absolute;
+      right: 0;
+      top: 0;
+      width: 420px;
+    }
+
+    .sc-container2 {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 420px;
+    }
+  }
+
+  /* Mobile styles */
+  @media (max-width: 767px) {
+    .sc-container,
+    .sc-container2 {
+      position: relative;
+      width: 100%;
+      min-height: calc(100vh - 120px);
+      margin-top: 60px;
+      margin-bottom: 70px;
+      padding: 20px 15px;
+    }
+
+    .cards-display {
+      padding: 30px 15px;
+      text-align: center;
+    }
+
+    .cards-container {
+      padding: 30px 15px;
+    }
+
+    .mobile-guide {
+      font-size: 14px;
+      line-height: 1.2;
+      padding: 15px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      margin: 20px 0;
+    }
+
+    .mobile-guide p {
+      margin: 4px 0;
+    }
+
+    .mobile-progress {
+      padding: 15px;
+    }
+
+    .progress-item {
+      margin-bottom: 12px;
+    }
+
+    .progress-text {
+      font-size: 14px;
+      margin-bottom: 6px;
+    }
+
+    .deck-title {
+      font-size: 18px;
+      padding: 10px 0;
+    }
+  }
+
   .sc-item {
     margin-bottom: 10px;
     height: 100px;
     position: relative;
   }
-  
+
+  /* Mobile card responsiveness */
+  @media (max-width: 767px) {
+    .sc-item {
+      height: 90px;
+      margin: 0 auto 15px auto;
+    }
+
+    .cards {
+      height: auto !important;
+      min-height: 180px;
+      margin: 10px auto;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+      transition: transform 0.2s ease;
+    }
+
+    .cards:hover {
+      transform: scale(1.05);
+    }
+
+    .deck-card {
+      min-height: 180px;
+      max-width: 130px;
+    }
+
+    .centered-card {
+      max-width: 150px;
+      margin: 15px auto;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .cards {
+      min-height: 160px;
+      margin: 8px auto;
+    }
+
+    .deck-card {
+      min-height: 160px;
+      max-width: 120px;
+    }
+
+    .centered-card {
+      max-width: 130px;
+      margin: 12px auto;
+    }
+  }
+
   .color-overlay {
     position: absolute;
     top: 0;
@@ -602,7 +841,7 @@
         rgba(0, 0, 0, 0) 100%);
     z-index: 1;
   }
-  
+
   .btn-container {
     display: flex;
     align-items: center;
@@ -615,7 +854,7 @@
     opacity: 0;
     transition: opacity 0.3s;
   }
-  
+
   .sc-info {
     display: flex;
     flex-direction: column;
@@ -624,7 +863,7 @@
     left: 90px;
     z-index: 2;
   }
-  
+
   .sc-icon {
     display: flex;
     position: absolute;
@@ -632,12 +871,12 @@
     left: 18px;
     z-index: 2;
   }
-  
+
   .sc-item:hover .btn-container,
   .sc-item:focus .btn-container {
     opacity: 1;
   }
-  
+
   .sc-item:hover v-img,
   .sc-item:focus v-img,
   .sc-item:hover .sc-icon,
@@ -646,22 +885,22 @@
   .sc-item:focus .sc-info {
     filter: blur(2px);
   }
-  
+
   .c-name {
     font-size: 14px;
   }
-  
+
   .c-rarity {
     font-size: 12px;
   }
-  
+
   .progress-bar {
     position: relative;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     transition: all 0.3s ease;
     overflow: hidden;
   }
-  
+
   .progress-bar::after {
     content: '';
     position: absolute;
@@ -673,7 +912,7 @@
     transition: all 0.3s ease;
     animation: progressAnimation 1s ease-in-out;
   }
-  
+
   @keyframes progressAnimation {
     0% {
       transform: scaleX(0);
@@ -682,7 +921,7 @@
       transform: scaleX(1);
     }
   }
-  
+
   .glow-border {
     position: fixed;
     top: 0;
@@ -692,7 +931,21 @@
     box-shadow: 0 0 10px #00ff00, 0 0 20px #00ff00;
     transition: box-shadow 0.3s ease-in-out;
   }
-  
+
+  /* Mobile responsive glow border */
+  @media (max-width: 767px) {
+    .glow-border {
+      position: relative;
+      width: 100%;
+      height: auto;
+      min-height: calc(100vh - 120px);
+      top: auto;
+      left: auto;
+      margin-top: 60px;
+      margin-bottom: 70px;
+    }
+  }
+
   .start-here-text {
     position: fixed;
     z-index: 9999;
@@ -703,7 +956,25 @@
     color: #00ff00; /* Green color for the text */
     animation: pulse 1.5s infinite; /* Apply the pulse animation */
   }
-  
+
+  /* Mobile responsive start-here text */
+  @media (max-width: 767px) {
+    .start-here-text {
+      top: 8rem;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 24px;
+      text-align: center;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .start-here-text {
+      font-size: 20px;
+      top: 7rem;
+    }
+  }
+
   /* Animation for the "Start here" text */
   @keyframes pulse {
     0% {
@@ -717,6 +988,105 @@
     100% {
         transform: scale(1);
         opacity: 1;
+    }
+  }
+
+  /* Touch-friendly interactions for mobile */
+  @media (max-width: 767px) {
+    .cards,
+    .deck-card,
+    .sc-item {
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .btn-container {
+      opacity: 1; /* Always show buttons on mobile */
+    }
+
+    /* Ensure proper spacing for touch targets */
+    .v-btn {
+      min-width: 44px !important;
+      min-height: 44px !important;
+    }
+
+    /* Better text sizing for mobile */
+    .c-name {
+      font-size: 12px;
+    }
+
+    .c-rarity {
+      font-size: 10px;
+    }
+
+    /* Adjust icon sizes for mobile */
+    .sc-icon .v-avatar {
+      width: 40px !important;
+      height: 40px !important;
+    }
+
+    .sc-info {
+      left: 60px;
+      bottom: 20px;
+    }
+  }
+
+  /* Extra small devices */
+  @media (max-width: 480px) {
+    .mobile-tabs {
+      top: 10px;
+      padding: 6px;
+    }
+
+    .mobile-tabs .v-btn {
+      font-size: 12px;
+      padding: 6px 10px;
+      min-height: 36px;
+    }
+
+    .mobile-bottom-buttons {
+      bottom: 10px;
+      padding: 10px 15px;
+      gap: 12px;
+    }
+
+    .mobile-bottom-buttons .v-btn {
+      font-size: 12px;
+      min-height: 40px;
+      min-width: 70px;
+    }
+
+    .display {
+      padding: 0;
+      background-attachment: scroll; /* Better performance on mobile */
+    }
+
+    .cards-display,
+    .cards-container {
+      padding: 20px 10px;
+    }
+
+    .mobile-guide {
+      font-size: 13px;
+      padding: 12px;
+    }
+  }
+
+  /* Landscape mobile orientation */
+  @media (max-width: 767px) and (orientation: landscape) {
+    .mobile-tabs {
+      top: 5px;
+    }
+
+    .mobile-bottom-buttons {
+      bottom: 5px;
+    }
+
+    .sc-container,
+    .sc-container2 {
+      margin-top: 50px;
+      margin-bottom: 50px;
+      min-height: calc(100vh - 100px);
     }
   }
   </style>
