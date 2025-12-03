@@ -52,7 +52,7 @@
                   </v-btn>
                   <v-btn
                     :class="{ 'selected-menu': selectedMenu === 2 }"
-                    @click="handleNavigation('/save')"
+                    @click="showAdventureDisclaimer"
                     class="font-weight-bold menu-text"
                     width="200"
                   >
@@ -87,6 +87,44 @@
       :audioSrc="audioSrc"
       audioType="audio/mp3"
     />
+
+    <!-- Adventure Mode Disclaimer Dialog -->
+    <v-dialog v-model="showDisclaimer" max-width="500">
+      <v-card>
+        <v-card-title class="text-h5 text-center">
+          Adventure Mode Disclaimer
+        </v-card-title>
+        <v-card-text class="text-center">
+          <p class="mb-3">
+            <strong>Please Note:</strong>
+          </p>
+          <p class="mb-3">
+            Adventure mode is not optimized for mobile devices and may not function properly on smaller screens.
+          </p>
+          <p>
+            For the best experience, please use a desktop or laptop computer.
+          </p>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn
+            color="red"
+            variant="text"
+            @click="showDisclaimer = false"
+          >
+            Cancel
+          </v-btn>
+          <v-btn
+            color="primary"
+            variant="elevated"
+            @click="proceedToAdventure"
+          >
+            Continue Anyway
+          </v-btn>
+          <v-spacer></v-spacer>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
 
@@ -103,6 +141,7 @@ const router = useRouter();
 const audioSrc = new URL("@/assets/audio/click.mp3", import.meta.url).href;
 const audioPlayerRef = ref(null);
 const selectedMenu = ref(0);
+const showDisclaimer = ref(false);
 
 // Play background audio when the component mounts
 onMounted(() => {
@@ -114,7 +153,7 @@ onMounted(() => {
 const handleNavigation = async (route) => {
   // Reset characters before proceeding
   await resetCharacters();
-  
+
   // Check if the route is for "Local Competitive"
   if (route === '/select_character') {
     const user_id = localStorage.getItem("user_id");
@@ -192,6 +231,17 @@ const resetCharacters = async () => {
   }
 };
 
+// Method to show adventure mode disclaimer
+const showAdventureDisclaimer = () => {
+  showDisclaimer.value = true;
+};
+
+// Method to proceed to adventure mode after disclaimer
+const proceedToAdventure = () => {
+  showDisclaimer.value = false;
+  handleNavigation('/save');
+};
+
 // Method to handle keyboard navigation
 const handleKeydown = (event) => {
   const menuItems = 4; // Update this to the number of menu items
@@ -203,7 +253,7 @@ const handleKeydown = (event) => {
     if (selectedMenu.value === 0) handleNavigation("/select_character_ai");
     else if (selectedMenu.value === 1) handleNavigation("/select_character");
     // else if (selectedMenu.value === 2) handleNavigation("/multiplayer");
-    else if (selectedMenu.value === 2) handleNavigation("/save");
+    else if (selectedMenu.value === 2) showAdventureDisclaimer();
     else if (selectedMenu.value === 3) handleNavigation("/cards");
     /*    else if (selectedMenu.value === 4) doLogout(); */
   }

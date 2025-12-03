@@ -223,6 +223,74 @@
         </v-card>
       </template>
     </v-dialog>
+
+    <!-- Game Prototype Disclaimer Dialog -->
+    <v-dialog v-model="showPrototypeDisclaimer" max-width="600" persistent>
+      <v-card>
+        <v-card-title class="text-h5 text-center bg-yellow-darken-1">
+          <v-icon class="mr-2">mdi-information</v-icon>
+          Game Prototype Notice
+        </v-card-title>
+        <v-card-text class="pa-6">
+          <div class="text-center mb-4">
+            <v-icon size="64" color="yellow-darken-1">mdi-gamepad-variant</v-icon>
+          </div>
+          <p class="mb-3 text-body-1">
+            <strong>Welcome to Sinawali Showdown!</strong>
+          </p>
+          <p class="mb-3">
+            Please note that this is currently a <strong>prototype version</strong> of our game.
+            This web-based version serves as a demonstration of our core gameplay mechanics and features.
+          </p>
+          <p class="mb-3">
+            We are excited to announce that we're planning to migrate this game to
+            <strong>Unity</strong> in the future, which will provide:
+          </p>
+          <v-list density="compact" class="mb-3">
+            <v-list-item>
+              <template v-slot:prepend>
+                <v-icon color="green">mdi-check</v-icon>
+              </template>
+              <v-list-item-title>Enhanced graphics and performance</v-list-item-title>
+            </v-list-item>
+            <v-list-item>
+              <template v-slot:prepend>
+                <v-icon color="green">mdi-check</v-icon>
+              </template>
+              <v-list-item-title>Better mobile optimization</v-list-item-title>
+            </v-list-item>
+            <v-list-item>
+              <template v-slot:prepend>
+                <v-icon color="green">mdi-check</v-icon>
+              </template>
+              <v-list-item-title>Additional features and game modes</v-list-item-title>
+            </v-list-item>
+            <v-list-item>
+              <template v-slot:prepend>
+                <v-icon color="green">mdi-check</v-icon>
+              </template>
+              <v-list-item-title>Cross-platform compatibility</v-list-item-title>
+            </v-list-item>
+          </v-list>
+          <p class="mb-0">
+            Thank you for your patience and enjoy exploring our prototype!
+          </p>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn
+            color="yellow-darken-1"
+            variant="elevated"
+            @click="proceedToGame"
+            size="large"
+          >
+            <v-icon class="mr-2">mdi-play</v-icon>
+            Continue to Game
+          </v-btn>
+          <v-spacer></v-spacer>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
 
@@ -255,6 +323,7 @@ const loginPassword = ref("");
 
 const showSignUpDialog = ref(false);
 const showLoginDialog = ref(false);
+const showPrototypeDisclaimer = ref(false);
 
 const isLoginEmailFocused = ref(false);
 const isLoginPasswordFocused = ref(false);
@@ -322,10 +391,10 @@ const login = async () => {
     loginPassword.value
   );
   if (!error) {
-    
+
     console.log("Login successful!");
     showLoginDialog.value = false;
-    router.push({ name: "landing" });
+    showDisclaimer();
   } else {
     console.error("Login error:", error);
   }
@@ -386,7 +455,7 @@ const googleAuth = async () => {
     userStore.username = userProfile[0].user_name;
 
     toast.success("Login successful!"); // Show toast success message
-    router.push({ name: "landing" });
+    showDisclaimer();
   }
 };
 
@@ -438,15 +507,26 @@ const loginAsGuest = async () => {
       userStore.username = profiles[0].user_name;
 
       toast.success("Login successful!"); // Show toast success message
-      router.push({ name: "landing" });
+      showDisclaimer();
       return { user: data.user };
 
-      
+
     }
   } catch (error) {
     console.error("LoginAsGuest error:", error.message);
     toast.error("Login failed.");
   }
+};
+
+// Function to show disclaimer after successful login
+const showDisclaimer = () => {
+  showPrototypeDisclaimer.value = true;
+};
+
+// Function to proceed to game after disclaimer
+const proceedToGame = () => {
+  showPrototypeDisclaimer.value = false;
+  router.push({ name: "landing" });
 };
 </script>
 
