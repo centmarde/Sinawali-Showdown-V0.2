@@ -5,7 +5,13 @@
         <v-card>
           <v-card-title>Deck Building Instructions</v-card-title>
           <v-card-text>
-            <p>Please build a deck of exactly 7 cards before proceeding.</p>
+            <p>Before fighting, choose the following cards to build your deck:</p>
+            <ul style="margin-top: 10px;">
+              <li><strong>1 Special Card</strong></li>
+              <li><strong>3 Rare Cards</strong></li>
+              <li><strong>3 Common Cards</strong></li>
+            </ul>
+            <p style="margin-top: 10px;">Total: Exactly 7 cards</p>
           </v-card-text>
           <v-card-actions>
             <v-btn color="primary" text @click="closeInfoDialog">Got it!</v-btn>
